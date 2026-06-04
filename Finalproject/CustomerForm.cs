@@ -287,6 +287,7 @@ namespace Finalproject
             if (selectedCustid == 0)
             {
                 MessageBox.Show("กรุณาเลือกลูกค้าที่ต้องการลบ", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
 
             SqlCommand myCommand = new SqlCommand();

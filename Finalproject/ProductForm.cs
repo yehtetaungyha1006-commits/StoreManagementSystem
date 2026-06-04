@@ -302,6 +302,7 @@ namespace Finalproject
             if (selectedProductid == 0)
             {
                 MessageBox.Show("กรุณาเลือกสินค้าที่ต้องการลบ", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
 
             SqlCommand myCommand = new SqlCommand();
