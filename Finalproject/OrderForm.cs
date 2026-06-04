@@ -98,7 +98,7 @@ namespace Finalproject
                 dgvOrder.DataSource = null;
             }
 
-            myDataReader.Close();   // << สำคัญมาก
+            myDataReader.Close();   
         }
 
         private void cmbProduct_SelectedIndexChanged(object sender, EventArgs e)
@@ -218,7 +218,7 @@ namespace Finalproject
                 //เช็ค Stock ก่อนสั่งซื้อสินค้า
                 SqlConnection productCon =new SqlConnection(DBConnect.ProductConn);
                 productCon.Open();
-                SqlCommand checkStock = new SqlCommand("SELECT Stock FROM Products WHERE ProductName @ProductName",productCon);
+                SqlCommand checkStock = new SqlCommand("SELECT Stock FROM Products WHERE ProductName = @ProductName",productCon);
                 checkStock.Parameters.AddWithValue("@ProductName",cmbProduct.Text);
 
                 int currentStock =
