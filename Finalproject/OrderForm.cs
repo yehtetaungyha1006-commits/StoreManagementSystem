@@ -18,6 +18,7 @@ namespace Finalproject
         public OrderForm()
         {
             InitializeComponent();
+
             mycon = new SqlConnection(DBConnect.OrderConn);
             try
             {
@@ -42,6 +43,7 @@ namespace Finalproject
         }
         private void LoadCustomer()
         {
+            //ดึงข้อมูลลูกค้ามาแสดงใน ComboBox
             DataTable dtCust = new DataTable();
             SqlDataAdapter daCust =
                 new SqlDataAdapter(
@@ -54,6 +56,7 @@ namespace Finalproject
         }
         private void LoadProduct()
         {
+            //ดึงข้อมูลสินค้ามาแสดงใน ComboBox
             DataTable dtProduct = new DataTable();
             SqlDataAdapter daProduct =
                 new SqlDataAdapter(
@@ -66,6 +69,7 @@ namespace Finalproject
         }
         private void showData()
         {
+            //แสดงข้อมูลรายการสั่งซื้อทั้งหมดใน DataGridView
             DataTable myDataTable = new DataTable();
             SqlDataReader myDataReader;
             SqlCommand mycommand = new SqlCommand();
@@ -104,73 +108,36 @@ namespace Finalproject
 
         private void printDocument1_PrintPage(object sender, System.Drawing.Printing.PrintPageEventArgs e)
         {
-            
-
             Font titleFont = new Font("Arial", 16, FontStyle.Bold);
             Font bodyFont = new Font("Arial", 12);
-
             int y = 50;
 
-            e.Graphics.DrawString(
-                "RECEIPT",
-                titleFont,
-                Brushes.Black,
-                250,
-                y);
+            e.Graphics.DrawString("RECEIPT",
+                titleFont,Brushes.Black,250,y);
+                y += 50;
 
-            y += 50;
+            e.Graphics.DrawString("ชื่อลูกค้า : " + cmbCust.Text,
+                bodyFont,Brushes.Black,50,y);
+                y += 30;
 
-            e.Graphics.DrawString(
-                "Customer : " + cmbCust.Text,
-                bodyFont,
-                Brushes.Black,
-                50,
-                y);
+            e.Graphics.DrawString("ชื่อสินค้า : " + cmbProduct.Text,
+                bodyFont,Brushes.Black,50,y);
+                y += 30;
 
-            y += 30;
+            e.Graphics.DrawString("ราคาต่อหน่วย : " + txtProductPrice.Text,
+                bodyFont,Brushes.Black,50,y);
+                y += 30;
 
-            e.Graphics.DrawString(
-                "Product : " + cmbProduct.Text,
-                bodyFont,
-                Brushes.Black,
-                50,
-                y);
+            e.Graphics.DrawString("จำนวนสินค้าที่ซื้อ : " + txtQuantity.Text,
+                bodyFont,Brushes.Black,50,y);
+                y += 30;
 
-            y += 30;
+            e.Graphics.DrawString("ราคารวม : " + txtTotalPrice.Text,
+                bodyFont,Brushes.Black,50,y);
+                y += 50;
 
-            e.Graphics.DrawString(
-                "Price : " + txtProductPrice.Text,
-                bodyFont,
-                Brushes.Black,
-                50,
-                y);
-
-            y += 30;
-
-            e.Graphics.DrawString(
-                "Quantity : " + txtQuantity.Text,
-                bodyFont,
-                Brushes.Black,
-                50,
-                y);
-
-            y += 30;
-
-            e.Graphics.DrawString(
-                "Total : " + txtTotalPrice.Text,
-                bodyFont,
-                Brushes.Black,
-                50,
-                y);
-
-            y += 50;
-
-            e.Graphics.DrawString(
-                "Thank You",
-                titleFont,
-                Brushes.Black,
-                200,
-                y);
+            e.Graphics.DrawString("Thank You",
+                titleFont,Brushes.Black,200,y);
         }
     
         private void OrderForm_Load(object sender, EventArgs e)
@@ -245,51 +212,35 @@ namespace Finalproject
             
             if (MessageBox.Show("ต้องการชื้อสินค้าหรือไม่", "การยืนยัน",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-            {
-
-                
-
+            {               
                 SqlTransaction myTransaction = mycon.BeginTransaction();
 
-                SqlConnection productCon =
-    new SqlConnection(DBConnect.ProductConn);
-
+                //เช็ค Stock ก่อนสั่งซื้อสินค้า
+                SqlConnection productCon =new SqlConnection(DBConnect.ProductConn);
                 productCon.Open();
-
-                SqlCommand checkStock = new SqlCommand(
-                    "SELECT Stock FROM Products WHERE ProductName = @ProductName",
-                    productCon);
-
-                checkStock.Parameters.AddWithValue(
-                    "@ProductName",
-                    cmbProduct.Text);
+                SqlCommand checkStock = new SqlCommand("SELECT Stock FROM Products WHERE ProductName @ProductName",productCon);
+                checkStock.Parameters.AddWithValue("@ProductName",cmbProduct.Text);
 
                 int currentStock =
                     Convert.ToInt32(checkStock.ExecuteScalar());
 
-                MessageBox.Show(
-                    "สินค้าคงเหลือ : " + currentStock + " ชิ้น",
-                    "จำนวนสินค้าใน Stock",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                MessageBox.Show("สินค้าคงเหลือ : " + currentStock + " ชิ้น","จำนวนสินค้าใน Stock",
+                    MessageBoxButtons.OK,MessageBoxIcon.Information);
+
                 int orderQty =
                     Convert.ToInt32(txtQuantity.Text);
 
                 if (orderQty > currentStock)
                 {
-                    MessageBox.Show(
-                        "สินค้าใน Stock ไม่เพียงพอ",
-                        "แจ้งเตือน",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-
+                    MessageBox.Show("สินค้าใน Stock ไม่เพียงพอ","แจ้งเตือน",
+                        MessageBoxButtons.OK,MessageBoxIcon.Warning);
                     productCon.Close();
                     return;
                 }
-
                 productCon.Close();
 
                 // Bug #3 Fix: ต้องกำหนด Connection และ Transaction ให้ SqlCommand
+                //ซื้อสินค้าและบันทึกข้อมูลการสั่งซื้อ
                 SqlCommand myCommand = new SqlCommand();
                 myCommand.Connection = mycon;
                 myCommand.Transaction = myTransaction;
@@ -309,27 +260,13 @@ namespace Finalproject
                     myCommand.ExecuteNonQuery();
 
                     //SqlConnection productCon = new SqlConnection(DBConnect.ProductConn);
-
+                    //Update Stock หลังจากสั่งซื้อสินค้า
                     productCon.Open();
-
-                    SqlCommand updateStock = new SqlCommand(
-                        "UPDATE Products " +
-                        "SET Stock = Stock - @Qty " +
-                        "WHERE ProductName = @ProductName",
-                        productCon);
-
-                    updateStock.Parameters.AddWithValue(
-                        "@Qty",
-                        Convert.ToInt32(txtQuantity.Text));
-
-                    updateStock.Parameters.AddWithValue(
-                        "@ProductName",
-                        cmbProduct.Text);
-
+                    SqlCommand updateStock = new SqlCommand("UPDATE Products " +"SET Stock = Stock - @Qty " +"WHERE ProductName = @ProductName",productCon);
+                    updateStock.Parameters.AddWithValue("@Qty",Convert.ToInt32(txtQuantity.Text));
+                    updateStock.Parameters.AddWithValue("@ProductName",cmbProduct.Text);
                     updateStock.ExecuteNonQuery();
-
                     productCon.Close();
-
                     myTransaction.Commit();
 
                     MessageBox.Show("เพิ่มรายการสั่งซื้อเรียบร้อยแล้ว","ยืนยัน",
@@ -403,25 +340,19 @@ namespace Finalproject
             {
                 myTransaction = mycon.BeginTransaction();
 
-                SqlCommand oldQtyCmd = new SqlCommand(
-    "SELECT Quantity FROM Orders WHERE OrderID = @OrderID",
-    mycon);
-
+                // ดึงข้อมูลจำนวนสินค้าที่สั่งซื้อเดิมมาเปรียบเทียบกับจำนวนใหม่
+                SqlCommand oldQtyCmd = new SqlCommand("SELECT Quantity FROM Orders WHERE OrderID = @OrderID",mycon);
                 oldQtyCmd.Transaction = myTransaction;
-                oldQtyCmd.Parameters.AddWithValue(
-                    "@OrderID",
-                    selectedOrderid);
+                oldQtyCmd.Parameters.AddWithValue("@OrderID",selectedOrderid);
 
                 int oldQty =
                     Convert.ToInt32(oldQtyCmd.ExecuteScalar());
-
                 int newQty =
                     Convert.ToInt32(txtQuantity.Text);
-
                 int diffQty = newQty - oldQty;
 
 
-
+                // Bug #3 Fix: ต้องกำหนด Connection และ Transaction ให้ SqlCommand
                 try
                 {
                     myCommand.CommandText =
@@ -439,71 +370,48 @@ namespace Finalproject
                     myCommand.Parameters.AddWithValue("@OrderID",selectedOrderid);
                     myCommand.ExecuteNonQuery();
 
-                    SqlConnection productCon =
-    new SqlConnection(DBConnect.ProductConn);
-
+                    SqlConnection productCon =new SqlConnection(DBConnect.ProductConn);
                     productCon.Open();
 
+                    //ปรับปรุง Stock ตามจำนวนที่เปลี่ยนแปลง
                     if (diffQty > 0)
                     {
-                        SqlCommand stockCmd = new SqlCommand(
-                            "UPDATE Products " +
-                            "SET Stock = Stock - @Qty " +
-                            "WHERE ProductName = @ProductName",
-                            productCon);
-
+                        SqlCommand stockCmd = new SqlCommand("UPDATE Products " +"SET Stock = Stock - @Qty " +"WHERE ProductName = @ProductName",productCon);
                         stockCmd.Parameters.AddWithValue("@Qty", diffQty);
                         stockCmd.Parameters.AddWithValue("@ProductName", cmbProduct.Text);
-
                         stockCmd.ExecuteNonQuery();
                     }
                     else if (diffQty < 0)
                     {
-                        SqlCommand stockCmd = new SqlCommand(
-                            "UPDATE Products " +
-                            "SET Stock = Stock + @Qty " +
-                            "WHERE ProductName = @ProductName",
-                            productCon);
-
+                        SqlCommand stockCmd = new SqlCommand("UPDATE Products " +"SET Stock = Stock + @Qty " +"WHERE ProductName = @ProductName",productCon);
                         stockCmd.Parameters.AddWithValue("@Qty", Math.Abs(diffQty));
                         stockCmd.Parameters.AddWithValue("@ProductName", cmbProduct.Text);
-
                         stockCmd.ExecuteNonQuery();
                     }
+                   productCon.Close();
 
-                    productCon.Close();
-
+                    //ถ้าจำนวนที่เพิ่มขึ้นมากกว่า 0 ให้เช็ค Stock ก่อนปรับปรุงข้อมูล
                     if (diffQty > 0)
                     {
                         //SqlConnection productCon =
-                            //new SqlConnection(DBConnect.ProductConn);
-
+                            //new SqlConnection(DBConnect.ProductConn)
                         productCon.Open();
 
-                        SqlCommand checkStock = new SqlCommand(
-                            "SELECT Stock FROM Products WHERE ProductName = @ProductName",
-                            productCon);
+                        SqlCommand checkStock = new SqlCommand("SELECT Stock FROM Products WHERE ProductName = @ProductName",productCon);
 
-                        checkStock.Parameters.AddWithValue(
-                            "@ProductName",
-                            cmbProduct.Text);
+                        checkStock.Parameters.AddWithValue("@ProductName",cmbProduct.Text);
 
                         int currentStock =
                             Convert.ToInt32(checkStock.ExecuteScalar());
 
                         if (diffQty > currentStock)
                         {
-                            MessageBox.Show(
-                                "สินค้าใน Stock ไม่เพียงพอ",
-                                "แจ้งเตือน");
-
+                            MessageBox.Show("สินค้าใน Stock ไม่เพียงพอ","แจ้งเตือน");
                             productCon.Close();
                             return;
                         }
-
                         productCon.Close();
                     }
-
                     myTransaction.Commit();
                     MessageBox.Show("แก้ไขรายการสั่งซื้อเรียบร้อยแล้ว","ผลการทำงาน",
                         MessageBoxButtons.OK,MessageBoxIcon.Information);
@@ -536,20 +444,15 @@ namespace Finalproject
             {
                 myTransaction = mycon.BeginTransaction();
 
-                SqlCommand getOrderCmd = new SqlCommand(
-    "SELECT ProductName, Quantity FROM Orders WHERE OrderID = @OrderID",
-    mycon);
-
+                // ดึงข้อมูลชื่อสินค้าและจำนวนที่สั่งซื้อมาใช้ในการปรับปรุง Stock เมื่อมีการลบรายการสั่งซื้อ
+                SqlCommand getOrderCmd = new SqlCommand("SELECT ProductName, Quantity FROM Orders WHERE OrderID = @OrderID",mycon);
                 getOrderCmd.Transaction = myTransaction;
-                getOrderCmd.Parameters.AddWithValue(
-                    "@OrderID",
-                    selectedOrderid);
-
+                getOrderCmd.Parameters.AddWithValue("@OrderID",selectedOrderid);
                 SqlDataReader dr = getOrderCmd.ExecuteReader();
 
                 string productName = "";
                 int qty = 0;
-
+                // ถ้าเจอข้อมูลรายการสั่งซื้อที่ต้องการลบ ให้ดึงชื่อสินค้าและจำนวนที่สั่งซื้อมาใช้ในการปรับปรุง Stock
                 if (dr.Read())
                 {
                     productName = dr["ProductName"].ToString();
@@ -557,23 +460,16 @@ namespace Finalproject
                 }
 
                 dr.Close();
-
-                SqlConnection productCon =
-    new SqlConnection(DBConnect.ProductConn);
-
+                
+                SqlConnection productCon =new SqlConnection(DBConnect.ProductConn);
                 productCon.Open();
-
-                SqlCommand stockCmd = new SqlCommand(
-                    "UPDATE Products " +
-                    "SET Stock = Stock + @Qty " +
-                    "WHERE ProductName = @ProductName",
-                    productCon);
+                // ปรับปรุง Stock โดยเพิ่มจำนวนสินค้ากลับเข้าไปใน Stock เมื่อมีการลบรายการสั่งซื้อ
+                SqlCommand stockCmd = new SqlCommand("UPDATE Products " +"SET Stock = Stock + @Qty " +"WHERE ProductName = @ProductName",productCon);
 
                 stockCmd.Parameters.AddWithValue("@Qty", qty);
                 stockCmd.Parameters.AddWithValue("@ProductName", productName);
 
                 stockCmd.ExecuteNonQuery();
-
                 productCon.Close();
 
                 try

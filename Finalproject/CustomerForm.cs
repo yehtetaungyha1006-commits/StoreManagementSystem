@@ -13,9 +13,7 @@ namespace Finalproject
 {
     public partial class CustomerForm : Form
     {
-        private string CustPhone;
-        private string CustEmail;
-        private string CustLocation;
+        
         private int selectedCustid;
         public SqlConnection mycon = null;
         public CustomerForm()
